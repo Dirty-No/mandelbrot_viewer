@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/06/27 20:02:05 by smaccary          #+#    #+#             */
-/*   Updated: 2020/06/28 20:59:26 by user42           ###   ########.fr       */
+/*   Updated: 2020/06/28 21:14:05 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,26 +113,26 @@ int			key_handler(long keys, t_game *game)
 	if (keys & FORWARD_PRESSED_MASK)
 	{
 		game->cursor_y -= CURSOR_SPEED;
-		game->plane->y_min += 0.1;
-		game->plane->y_max += 0.1;
+		game->plane->y_min += 0.1 / game->zoom_level;
+		game->plane->y_max += 0.1 / game->zoom_level;
 	}
 	if (keys & BACKWARD_PRESSED_MASK)
 	{
 		game->cursor_y += CURSOR_SPEED;
-		game->plane->y_min -= 0.1;
-		game->plane->y_max -= 0.1;
+		game->plane->y_min -= 0.1 / game->zoom_level;
+		game->plane->y_max -= 0.1 / game->zoom_level;
 	}
 	if (keys & RIGHT_PRESSED_MASK)
 	{
 		game->cursor_x += CURSOR_SPEED;
-		game->plane->x_min += 0.1;
-		game->plane->x_max += 0.1;
+		game->plane->x_min += 0.1 / game->zoom_level;
+		game->plane->x_max += 0.1 / game->zoom_level;
 	}
 	if (keys & LEFT_PRESSED_MASK)
 	{
 		game->cursor_x -= CURSOR_SPEED;
-		game->plane->x_min -= 0.1;
-		game->plane->x_max -= 0.1;
+		game->plane->x_min -= 0.1 / game->zoom_level;
+		game->plane->x_max -= 0.1 / game->zoom_level;
 	}
 	return (0);
 }
@@ -141,12 +141,6 @@ int		loop_handler(t_game *game)
 {
 	static clock_t	t0 = 0;
 	static int		i = 0;
-	int new_xmin;
-	int new_xmax;
-	int new_ymax;
-	int new_ymin;
-	int new_center_x;
-	int	new_center_y;
 
 	t_window		*window = (game->win);
 	t_data			*buffers = game->buffs;
@@ -160,10 +154,7 @@ int		loop_handler(t_game *game)
 		draw_cross(buffers + i, game->cursor_x, game->cursor_y, 10);
 		t0 = clock();
 		printf("%LF %LF %LF %LF\n",plane->x_min, plane->y_min, plane->x_max, plane->y_max);
-		
-		plane->x_center = (plane->x_min + plane->x_max) / 2;
-		plane->y_center = (plane->y_min + plane->y_max) / 2;
-		*plane = (t_plane){.x_min=plane->x_min + ZOOM, .x_max=plane->x_max - ZOOM, .y_min=plane->y_min + ZOOM, .y_max=plane->y_max - ZOOM};
+		*plane = (t_plane){.x_min=plane->x_min +  (ZOOM / game->zoom_level), .x_max=plane->x_max -  (ZOOM / game->zoom_level), .y_min=plane->y_min +  (ZOOM / game->zoom_level), .y_max=plane->y_max -  (ZOOM / game->zoom_level)};
 		/*plane->x_min = ;
 		plane->x_max = ;
 		plane->y_min = ;
@@ -172,6 +163,7 @@ int		loop_handler(t_game *game)
 		game->redraw = 1;
 		game->cursor_x = WIN_WIDTH / 2;
 		game ->cursor_y  = WIN_HEIGHT / 2;
+		game->zoom_level += 0.01;
 	}
 	if (game->redraw)
 	{
@@ -219,9 +211,9 @@ void		hooks(t_window *win, t_game *game)
 int		main(void)
 {
 	t_data		buffers[2];
-	t_plane		plane = (t_plane){.x_min=-2, .x_max=0.5, .y_min=-1.25, .y_max=1.25};
+	t_plane		plane = (t_plane){MIN_X0, MAX_X0, MIN_Y0, MAX_Y0};
 	t_window	window = (t_window){WIN_WIDTH, WIN_HEIGHT, 0, 0};
-	t_game		game = (t_game){buffers, &window, &plane, WIN_WIDTH / 2, WIN_HEIGHT / 2, 0};
+	t_game		game = (t_game){buffers, &window, &plane, WIN_WIDTH / 2, WIN_HEIGHT / 2, 0, 0, 1.0};
 
 	init_window(buffers, &plane, &window);
 	hooks(&window, &game);
