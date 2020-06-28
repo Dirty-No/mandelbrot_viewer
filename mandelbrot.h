@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/06/27 20:02:44 by smaccary          #+#    #+#             */
-/*   Updated: 2020/06/28 17:46:30 by user42           ###   ########.fr       */
+/*   Updated: 2020/06/28 19:59:22 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,12 +17,13 @@
 # include <stdio.h>
 # include "events.h"
 
+# define ABS(x) ((x < 0) ? (x) * -1 : x)
 # define WIN_WIDTH 800
 # define WIN_HEIGHT 800
 # define MAX_ITER 50
 # define ZOOM 0.995
 # define FRAMECAP 120
-# define CURSOR_SPEED 10
+# define CURSOR_SPEED 5
 
 # define FORWARD_PRESSED 1L
 # define BACKWARD_PRESSED (1L << 1)

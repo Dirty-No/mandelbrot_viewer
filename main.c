@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/06/27 20:02:05 by smaccary          #+#    #+#             */
-/*   Updated: 2020/06/28 17:47:00 by user42           ###   ########.fr       */
+/*   Updated: 2020/06/28 20:08:27 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -87,34 +87,25 @@ void	draw_cross(t_data *img, int x, int y, int size)
 		my_mlx_pixel_put(img, x, y0, 0xFFFFFF);
 }
 
-int		loop_handler(t_game *game)
-{
-	static clock_t	t0 = 0;
-	static int		i = 0;
-	static int		mouse_x;
-	static int		mouse_y;
-	t_window		*window = (game->win);
-	t_data			*buffers = game->buffs;
-	t_plane			*plane = (game->plane);
 
-	printf("x %d y %d\n", game->cursor_x, game->cursor_y);
-	if (clock() - t0 >= CLOCKS_PER_SEC / FRAMECAP)
-	{
-		key_handler(game->keys, game);
-		draw_mandelbrot(window, buffers + i, plane);
-		draw_cross(buffers + i, game->cursor_x, game->cursor_y, 10);
-		t0 = clock();
-		*plane = (t_plane){.x_min=plane->x_min * ZOOM, .x_max=plane->x_max * ZOOM, .y_min=-plane->y_min * ZOOM, .y_max=plane->y_max * ZOOM};
-		*plane = (t_plane){.x_min=plane->x_min * ZOOM, .x_max=plane->x_max * ZOOM, .y_min=-plane->y_min * ZOOM, .y_max=plane->y_max * ZOOM};
-		i = (i) ? 0 : 1;
-		game->redraw = 1;
-	}
-	if (game->redraw)
-	{
-		mlx_put_image_to_window(window->mlx, window->win, buffers[i].img, 0, 0);
-		game->redraw = 0;
-	}
-	return (0);
+void    drawRectangle(t_data *data, int top_left[2], int bot_right[2])
+{
+        int i;
+
+        i = top_left[0];
+        while (i <= bot_right[0])
+        {
+                my_mlx_pixel_put(data, i, top_left[1], 0x00FFFFFF);
+                my_mlx_pixel_put(data, i, bot_right[1], 0x00FFFFFF);
+                i++;
+        }
+        i = top_left[1];
+        while (i <= bot_right[1])
+        {
+                my_mlx_pixel_put(data, top_left[0], i, 0x00FFFFFF);
+                my_mlx_pixel_put(data, bot_right[0], i, 0x00FFFFFF);
+                i++;
+        }
 }
 
 int			key_handler(long keys, t_game *game)
@@ -127,6 +118,67 @@ int			key_handler(long keys, t_game *game)
 		game->cursor_x += CURSOR_SPEED;
 	if (keys & LEFT_PRESSED_MASK)
 		game->cursor_x -= CURSOR_SPEED;
+	return (0);
+}
+
+int		loop_handler(t_game *game)
+{
+	static clock_t	t0 = 0;
+	static int		i = 0;
+	int new_xmin;
+	int new_xmax;
+	int new_ymax;
+	int new_ymin;
+
+	t_window		*window = (game->win);
+	t_data			*buffers = game->buffs;
+	t_plane			*plane = (game->plane);
+
+//	printf("x %d y %d\n", game->cursor_x, game->cursor_y);
+	if (clock() - t0 >= CLOCKS_PER_SEC / FRAMECAP)
+	{
+		key_handler(game->keys, game);
+		draw_mandelbrot(window, buffers + i, plane);
+		draw_cross(buffers + i, game->cursor_x, game->cursor_y, 10);
+		t0 = clock();
+
+		new_xmin = game->cursor_x - ZOOM * WIN_WIDTH / 2;
+		new_ymin = game->cursor_y - ZOOM * WIN_HEIGHT / 2;
+		new_xmax = game->cursor_x + ZOOM * WIN_WIDTH / 2;
+		new_ymax = game->cursor_y + ZOOM * WIN_HEIGHT / 2;
+	//	printf("%d %d %d %d\n",new_xmin, new_ymin, new_xmax, new_ymax);
+		if (game->keys & FORWARD_PRESSED_MASK)
+		{
+			plane->y_min += 0.1;
+			plane->y_max += 0.1;
+		}
+		if (game->keys & BACKWARD_PRESSED_MASK)
+		{
+			plane->y_min -= 0.1;
+			plane->y_max -= 0.1;
+		}
+		if (game->keys & LEFT_PRESSED_MASK)
+		{
+			plane->x_min -= 0.1;
+			plane->x_max -= 0.1;
+		}
+		if (game->keys & RIGHT_PRESSED_MASK)
+		{
+			plane->x_min += 0.1;
+			plane->x_max += 0.1;
+		}
+		printf("%LF %LF %LF %LF\n",plane->x_min, plane->y_min, plane->x_max, plane->y_max);
+		*plane = (t_plane){.x_min=plane->x_min * ZOOM, .x_max=plane->x_max * ZOOM, .y_min=plane->y_min * ZOOM, .y_max=plane->y_max * ZOOM};
+		game->redraw = 1;
+		game->cursor_x = WIN_WIDTH / 2;
+		game ->cursor_y  = WIN_HEIGHT / 2;
+	}
+	if (game->redraw)
+	{
+		mlx_put_image_to_window(window->mlx, window->win, buffers[i].img, 0, 0);
+		i = (i) ? 0 : 1;
+		game->redraw = 0;
+	}
 	return (0);
 }
 
@@ -168,12 +220,12 @@ int		main(void)
 {
 	t_data		buffers[2];
 	t_plane		plane = (t_plane){.x_min=-2, .x_max=0.5, .y_min=-1.25, .y_max=1.25};
-	t_window	window = (t_window){500, 500, 0, 0};
+	t_window	window = (t_window){WIN_WIDTH, WIN_HEIGHT, 0, 0};
 	t_game		game = (t_game){buffers, &window, &plane, WIN_WIDTH / 2, WIN_HEIGHT / 2, 0};
 
 	init_window(buffers, &plane, &window);
 	hooks(&window, &game);
-	mlx_do_key_autorepeatoff(window.mlx);
+	mlx_do_key_autorepeaton(window.mlx);
 //	for (int i = 0; i < window.width; i++)
 //		my_mlx_pixel_put(&buffers, i, 200, 0xF00FFF);
 	mlx_loop(window.mlx);
