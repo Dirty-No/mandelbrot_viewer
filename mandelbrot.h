@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/06/27 20:02:44 by smaccary          #+#    #+#             */
-/*   Updated: 2020/06/28 19:59:22 by user42           ###   ########.fr       */
+/*   Updated: 2020/06/28 20:59:18 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,8 @@
 # define WIN_WIDTH 800
 # define WIN_HEIGHT 800
 # define MAX_ITER 50
-# define ZOOM 0.995
-# define FRAMECAP 120
+# define ZOOM 0.005
+# define FRAMECAP 20
 # define CURSOR_SPEED 5
 
 # define FORWARD_PRESSED 1L
@@ -67,6 +67,9 @@ typedef struct	s_plane
 	long double	y_min;
 	long double	x_max;
 	long double y_max;
+	long double x_center;
+	long double y_center;
+	
 }				t_plane;
 
 typedef struct	s_window
@@ -85,7 +88,7 @@ typedef struct	s_game
 	int			cursor_x;
 	int			cursor_y;
 	int			redraw;
-	long			keys;
+	long		keys;
 }				t_game;
 
 

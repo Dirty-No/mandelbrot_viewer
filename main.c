@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/06/27 20:02:05 by smaccary          #+#    #+#             */
-/*   Updated: 2020/06/28 20:08:27 by user42           ###   ########.fr       */
+/*   Updated: 2020/06/28 20:59:26 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -111,13 +111,29 @@ void    drawRectangle(t_data *data, int top_left[2], int bot_right[2])
 int			key_handler(long keys, t_game *game)
 {
 	if (keys & FORWARD_PRESSED_MASK)
+	{
 		game->cursor_y -= CURSOR_SPEED;
+		game->plane->y_min += 0.1;
+		game->plane->y_max += 0.1;
+	}
 	if (keys & BACKWARD_PRESSED_MASK)
+	{
 		game->cursor_y += CURSOR_SPEED;
+		game->plane->y_min -= 0.1;
+		game->plane->y_max -= 0.1;
+	}
 	if (keys & RIGHT_PRESSED_MASK)
+	{
 		game->cursor_x += CURSOR_SPEED;
+		game->plane->x_min += 0.1;
+		game->plane->x_max += 0.1;
+	}
 	if (keys & LEFT_PRESSED_MASK)
+	{
 		game->cursor_x -= CURSOR_SPEED;
+		game->plane->x_min -= 0.1;
+		game->plane->x_max -= 0.1;
+	}
 	return (0);
 }
 
@@ -129,6 +145,8 @@ int		loop_handler(t_game *game)
 	int new_xmax;
 	int new_ymax;
 	int new_ymin;
+	int new_center_x;
+	int	new_center_y;
 
 	t_window		*window = (game->win);
 	t_data			*buffers = game->buffs;
@@ -141,34 +159,16 @@ int		loop_handler(t_game *game)
 		draw_mandelbrot(window, buffers + i, plane);
 		draw_cross(buffers + i, game->cursor_x, game->cursor_y, 10);
 		t0 = clock();
-
-		new_xmin = game->cursor_x - ZOOM * WIN_WIDTH / 2;
-		new_ymin = game->cursor_y - ZOOM * WIN_HEIGHT / 2;
-		new_xmax = game->cursor_x + ZOOM * WIN_WIDTH / 2;
-		new_ymax = game->cursor_y + ZOOM * WIN_HEIGHT / 2;
-	//	printf("%d %d %d %d\n",new_xmin, new_ymin, new_xmax, new_ymax);
-		if (game->keys & FORWARD_PRESSED_MASK)
-		{
-			plane->y_min += 0.1;
-			plane->y_max += 0.1;
-		}
-		if (game->keys & BACKWARD_PRESSED_MASK)
-		{
-			plane->y_min -= 0.1;
-			plane->y_max -= 0.1;
-		}
-		if (game->keys & LEFT_PRESSED_MASK)
-		{
-			plane->x_min -= 0.1;
-			plane->x_max -= 0.1;
-		}
-		if (game->keys & RIGHT_PRESSED_MASK)
-		{
-			plane->x_min += 0.1;
-			plane->x_max += 0.1;
-		}
 		printf("%LF %LF %LF %LF\n",plane->x_min, plane->y_min, plane->x_max, plane->y_max);
-		*plane = (t_plane){.x_min=plane->x_min * ZOOM, .x_max=plane->x_max * ZOOM, .y_min=plane->y_min * ZOOM, .y_max=plane->y_max * ZOOM};
+		
+		plane->x_center = (plane->x_min + plane->x_max) / 2;
+		plane->y_center = (plane->y_min + plane->y_max) / 2;
+		*plane = (t_plane){.x_min=plane->x_min + ZOOM, .x_max=plane->x_max - ZOOM, .y_min=plane->y_min + ZOOM, .y_max=plane->y_max - ZOOM};
+		/*plane->x_min = ;
+		plane->x_max = ;
+		plane->y_min = ;
+		plane->y_max = ;*/
+		
 		game->redraw = 1;
 		game->cursor_x = WIN_WIDTH / 2;
 		game ->cursor_y  = WIN_HEIGHT / 2;
