@@ -3,24 +3,50 @@
 /*                                                        :::      ::::::::   */
 /*   mandelbrot.h                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: smaccary <smaccary@student.42.fr>          +#+  +:+       +#+        */
+/*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/06/27 20:02:44 by smaccary          #+#    #+#             */
-/*   Updated: 2020/06/27 20:42:52 by smaccary         ###   ########.fr       */
+/*   Updated: 2020/06/28 17:46:30 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef MANDELBROT_H
 # define MANDELBROT_H
 # include <mlx.h>
+# include <time.h>
+# include <stdio.h>
+# include "events.h"
+
 # define WIN_WIDTH 800
 # define WIN_HEIGHT 800
 # define MAX_ITER 50
+# define ZOOM 0.995
+# define FRAMECAP 120
+# define CURSOR_SPEED 10
+
+# define FORWARD_PRESSED 1L
+# define BACKWARD_PRESSED (1L << 1)
+# define RIGHT_PRESSED (1L << 2)
+# define LEFT_PRESSED (1L << 3)
+
+# define FORWARD_PRESSED_MASK 0b0001
+# define BACKWARD_PRESSED_MASK 0b0010
+# define RIGHT_PRESSED_MASK 0b0100
+# define LEFT_PRESSED_MASK 0b1000
+
+# define FORWARD_RELEASED_MASK 0b1110
+# define BACKWARD_RELEASED_MASK 0b1101
+# define RIGHT_RELEASED_MASK 0b1011
+# define LEFT_RELEASED_MASK 0b0111
+
+int mlx_mouse_get_pos(void *mlx_ptr, int *x, int *y);
+
+
 typedef struct s_point
 {
 	long double	x;
 	long double y;
-	long double val;
+	int val;
 }				t_point;
 
 typedef struct	s_data
@@ -49,5 +75,17 @@ typedef struct	s_window
 	void		*mlx;
 	void		*win;
 }				t_window;
+
+typedef struct	s_game
+{
+	t_data		*buffs;
+	t_window	*win;
+	t_plane		*plane;
+	int			cursor_x;
+	int			cursor_y;
+	int			redraw;
+	long			keys;
+}				t_game;
+
 
 #endif
