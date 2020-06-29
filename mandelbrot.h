@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/06/27 20:02:44 by smaccary          #+#    #+#             */
-/*   Updated: 2020/06/28 21:13:45 by user42           ###   ########.fr       */
+/*   Updated: 2020/06/29 02:25:08 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,12 +18,13 @@
 # include "events.h"
 
 # define ABS(x) ((x < 0) ? (x) * -1 : x)
-# define WIN_WIDTH 800
-# define WIN_HEIGHT 800
-# define MAX_ITER 50
+# define WIN_WIDTH 400
+# define WIN_HEIGHT 400
+# define MIN_ITER 50
 # define ZOOM 0.005
-# define FRAMECAP 20
+# define FRAMECAP 60
 # define CURSOR_SPEED 5
+# define PLANE_SPEED 0.01
 
 # define MIN_X0 -2
 # define MAX_X0 0.5
@@ -92,6 +93,7 @@ typedef struct	s_game
 	int			redraw;
 	long		keys;
 	long double	zoom_level;
+	size_t		max_iter;
 }				t_game;
 
 

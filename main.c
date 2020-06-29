@@ -6,7 +6,7 @@
 /*   By: user42 <user42@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2020/06/27 20:02:05 by smaccary          #+#    #+#             */
-/*   Updated: 2020/06/28 21:14:05 by user42           ###   ########.fr       */
+/*   Updated: 2020/06/29 01:46:46 by user42           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,7 +46,7 @@ void	init_window(t_data *buf, t_plane *plane, t_window *window)
 	init_img(window->mlx, window->width, window->height, buf + 1);
 }
 
-void __attribute__((hot)) draw_mandelbrot(t_window *win, t_data *buf, t_plane *plane)
+void __attribute__((hot)) draw_mandelbrot(t_window *win, t_data *buf, t_plane *plane, size_t max_iter)
 {
 	int		y =	-1;
 	int		x;
@@ -62,12 +62,12 @@ void __attribute__((hot)) draw_mandelbrot(t_window *win, t_data *buf, t_plane *p
 			c.x = (x * (plane->x_max - plane->x_min) / win->width + plane->x_min);
 			c.y = (y * (plane->y_min - plane->y_max) / win->height + plane->y_max);
 			n = (t_point){0};
-			while ((n.x * n.x + n.y * n.y) < 4 && n.val < MAX_ITER)
+			while ((n.x * n.x + n.y * n.y) < 4 && n.val < max_iter)
 			{
 				tmp = (t_point){n.x, n.y, 0};
 				n = (t_point){tmp.x * tmp.x - tmp.y * tmp.y + c.x, 2 * tmp.x * tmp.y + c.y, n.val + 1};
 			}
-			if (n.val == MAX_ITER)
+			if (n.val == max_iter)
 				my_mlx_pixel_put(buf, x, y, 0x0);
 			else
 				my_mlx_pixel_put(buf, x, y,
@@ -113,26 +113,26 @@ int			key_handler(long keys, t_game *game)
 	if (keys & FORWARD_PRESSED_MASK)
 	{
 		game->cursor_y -= CURSOR_SPEED;
-		game->plane->y_min += 0.1 / game->zoom_level;
-		game->plane->y_max += 0.1 / game->zoom_level;
+		game->plane->y_min += PLANE_SPEED / game->zoom_level;
+		game->plane->y_max += PLANE_SPEED / game->zoom_level;
 	}
 	if (keys & BACKWARD_PRESSED_MASK)
 	{
 		game->cursor_y += CURSOR_SPEED;
-		game->plane->y_min -= 0.1 / game->zoom_level;
-		game->plane->y_max -= 0.1 / game->zoom_level;
+		game->plane->y_min -= PLANE_SPEED / game->zoom_level;
+		game->plane->y_max -= PLANE_SPEED / game->zoom_level;
 	}
 	if (keys & RIGHT_PRESSED_MASK)
 	{
 		game->cursor_x += CURSOR_SPEED;
-		game->plane->x_min += 0.1 / game->zoom_level;
-		game->plane->x_max += 0.1 / game->zoom_level;
+		game->plane->x_min += PLANE_SPEED / game->zoom_level;
+		game->plane->x_max += PLANE_SPEED / game->zoom_level;
 	}
 	if (keys & LEFT_PRESSED_MASK)
 	{
 		game->cursor_x -= CURSOR_SPEED;
-		game->plane->x_min -= 0.1 / game->zoom_level;
-		game->plane->x_max -= 0.1 / game->zoom_level;
+		game->plane->x_min -= PLANE_SPEED / game->zoom_level;
+		game->plane->x_max -= PLANE_SPEED / game->zoom_level;
 	}
 	return (0);
 }
@@ -141,6 +141,7 @@ int		loop_handler(t_game *game)
 {
 	static clock_t	t0 = 0;
 	static int		i = 0;
+	static size_t	count = 0;
 
 	t_window		*window = (game->win);
 	t_data			*buffers = game->buffs;
@@ -150,20 +151,27 @@ int		loop_handler(t_game *game)
 	if (clock() - t0 >= CLOCKS_PER_SEC / FRAMECAP)
 	{
 		key_handler(game->keys, game);
-		draw_mandelbrot(window, buffers + i, plane);
+		draw_mandelbrot(window, buffers + i, plane, game->max_iter);
 		draw_cross(buffers + i, game->cursor_x, game->cursor_y, 10);
 		t0 = clock();
-		printf("%LF %LF %LF %LF\n",plane->x_min, plane->y_min, plane->x_max, plane->y_max);
-		*plane = (t_plane){.x_min=plane->x_min +  (ZOOM / game->zoom_level), .x_max=plane->x_max -  (ZOOM / game->zoom_level), .y_min=plane->y_min +  (ZOOM / game->zoom_level), .y_max=plane->y_max -  (ZOOM / game->zoom_level)};
-		/*plane->x_min = ;
-		plane->x_max = ;
-		plane->y_min = ;
-		plane->y_max = ;*/
-		
+		//printf("%LF %LF %LF %LF\n",plane->x_min, plane->y_min, plane->x_max, plane->y_max);
+		*plane = (t_plane)
+		{
+			.x_min=plane->x_min + (ZOOM / game->zoom_level), 
+			.x_max=plane->x_max - (ZOOM / game->zoom_level), 
+			.y_min=plane->y_min + (ZOOM / game->zoom_level), 
+			.y_max=plane->y_max - (ZOOM / game->zoom_level)
+		};
 		game->redraw = 1;
 		game->cursor_x = WIN_WIDTH / 2;
 		game ->cursor_y  = WIN_HEIGHT / 2;
-		game->zoom_level += 0.01;
+		game->zoom_level = 1 / (plane->x_max - plane->x_min);
+		if (++count > 10)
+		{
+			game->max_iter++;
+			count = 0;
+		}
+		printf("%zu\n", game->max_iter);
 	}
 	if (game->redraw)
 	{
@@ -184,7 +192,6 @@ int			press_handler(int keycode, t_game *game)
 		game->keys |= RIGHT_PRESSED;
 	else if (keycode == LEFT_KEY)
 		game->keys |= LEFT_PRESSED;
-	printf("%LX\n", game->keys);
 	return (0);
 }
 
@@ -213,7 +220,7 @@ int		main(void)
 	t_data		buffers[2];
 	t_plane		plane = (t_plane){MIN_X0, MAX_X0, MIN_Y0, MAX_Y0};
 	t_window	window = (t_window){WIN_WIDTH, WIN_HEIGHT, 0, 0};
-	t_game		game = (t_game){buffers, &window, &plane, WIN_WIDTH / 2, WIN_HEIGHT / 2, 0, 0, 1.0};
+	t_game		game = (t_game){buffers, &window, &plane, WIN_WIDTH / 2, WIN_HEIGHT / 2, 0, 0, 1.0, MIN_ITER};
 
 	init_window(buffers, &plane, &window);
 	hooks(&window, &game);
